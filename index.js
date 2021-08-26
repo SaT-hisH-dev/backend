@@ -51,7 +51,14 @@ io.on("connection", (socket) => {
       username: socket.username,
     });
   });
-
+  socket.on("disconnect", () => {
+    // echo globally that this client has left
+    console.log(socket.username, "left");
+    socket.broadcast.emit("user left", {
+      username: socket.username,
+      numUsers: numUsers,
+    });
+  });
   socket.on("new message", (data) => {
     console.log(socket.username);
     socket.broadcast.emit("new message", {
