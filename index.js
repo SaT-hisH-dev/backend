@@ -16,11 +16,48 @@ const PORT = process.env.PORT || 5000;
 app.get("/", (req, res) => {
   res.send("Running");
 });
+let numUsers = 0;
 io.on("connection", (socket) => {
-  socket.emit("self", socket.id);
+  // when the client emits 'add user', this listens and executes
+  socket.on("add user", (username) => {
+    let addedUser = false;
+    if (addedUser) return;
 
-  socket.on("callUser", ({ id, message, name }) => {
-    io.to(id).emit("callUser", { name: name, message: message });
+    // we store the username in the socket session for this client
+    socket.username = username;
+    ++numUsers;
+    addedUser = true;
+    socket.emit("login", {
+      numUsers: numUsers,
+    });
+    // echo globally (all clients) that a person has connected
+    socket.broadcast.emit("user joined", {
+      username: socket.username,
+      numUsers: numUsers,
+    });
+  });
+
+  socket.on("typing", () => {
+    console.log(socket.username, "typing");
+    socket.broadcast.emit("typing", {
+      username: socket.username,
+      value: "typing...",
+    });
+  });
+
+  // when the client emits 'stop typing', we broadcast it to others
+  socket.on("stop typing", () => {
+    socket.broadcast.emit("stop typing", {
+      username: socket.username,
+    });
+  });
+
+  socket.on("new message", (data) => {
+    console.log(socket.username);
+    socket.broadcast.emit("new message", {
+      username: socket.username || "You",
+      value: data,
+    });
   });
 });
 
