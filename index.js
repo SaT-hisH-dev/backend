@@ -53,17 +53,17 @@ io.on("connection", (socket) => {
   });
   socket.on("disconnect", () => {
     // echo globally that this client has left
-    console.log(socket.username, "left");
     socket.broadcast.emit("user left", {
       username: socket.username,
       numUsers: numUsers,
     });
   });
   socket.on("new message", (data) => {
-    console.log(socket.username);
+    console.log(socket.username, data, "hi");
     socket.broadcast.emit("new message", {
-      username: socket.username || "You",
+      username: socket.username,
       value: data,
+      self: false,
     });
   });
 });
